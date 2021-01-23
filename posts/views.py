@@ -22,7 +22,7 @@ def index(request):
 def group_posts(request, slug):
     """Страница записей сообщества group_post"""
     group = get_object_or_404(Group, slug=slug)
-    posts = group.group.all() 
+    posts = group.group.all()
     paginator = Paginator(posts, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
