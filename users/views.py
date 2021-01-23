@@ -1,12 +1,10 @@
-from django.shortcuts import render
 from django.core.mail import send_mail
-
-#  импортируем CreateView, чтобы создать ему наследника
-from django.views.generic import CreateView
-
+from django.shortcuts import render
 #  функция reverse_lazy позволяет получить URL по параметру "name" функции path()
 #  берём, тоже пригодится
 from django.urls import reverse_lazy
+#  импортируем CreateView, чтобы создать ему наследника
+from django.views.generic import CreateView
 
 #  импортируем класс формы, чтобы сослаться на неё во view-классе
 from .forms import CreationForm

@@ -7,13 +7,6 @@
     Добавить запись
 {% endif %}
 {% endblock %}
-{% block header %}
-{% if is_edit %}
-    Редактировать запись
-{% else %}
-    Добавить запись
-{% endif %}
-{% endblock %}
 {% block content %}
     <form method="post" enctype="multipart/form-data">
     {% csrf_token %}

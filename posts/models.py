@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -33,7 +33,13 @@ class Post(models.Model):
         help_text="Названия сообщества по интересам."
     )
 
-    image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    image = models.ImageField(
+        verbose_name="Изображение",
+        upload_to='posts/',
+        blank=True,
+        null=True,
+        help_text="Ваше изображение"
+        )
 
     class Meta:
         ordering = ["-pub_date"]
@@ -44,9 +50,17 @@ class Post(models.Model):
 
 class Group(models.Model):
     """Модель для Группы"""
-    title = models.CharField(verbose_name="Заголовок сообщества", max_length=200)
-    slug = models.SlugField(verbose_name="Адрес сообщества в интернете", unique=True)
-    description = models.TextField(verbose_name="Описание сообщества")
+    title = models.CharField(
+        verbose_name="Заголовок сообщества",
+        max_length=200
+    )
+    slug = models.SlugField(
+        verbose_name="Адрес сообщества в интернете",
+        unique=True
+    )
+    description = models.TextField(
+        verbose_name="Описание сообщества"
+    )
 
     def __str__(self):
         return self.title
@@ -73,8 +87,7 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, blank=True,
-        null=True,
+        User, on_delete=models.CASCADE,
         related_name='follower'
     )
     author = models.ForeignKey(

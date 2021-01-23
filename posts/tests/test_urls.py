@@ -1,6 +1,6 @@
-from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
+from django.test import Client, TestCase
 
 from ..models import Group, Post
 
