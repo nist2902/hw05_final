@@ -6,9 +6,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.shortcuts import reverse
-from django.test import Client, TestCase
+from django.test import TestCase, Client
 
-from ..models import Comment, Follow, Group, Post
+from ..models import Post, Group, Follow, Comment
 
 
 class ViewContentTest(TestCase):
@@ -32,19 +32,16 @@ class ViewContentTest(TestCase):
             content=small_gif,
             content_type='image/gif'
         )
-
         cls.group = Group.objects.create(
             title="Заголовок группы",
             slug="test-lev",
             description="Тестовый текст группы"
         )
-
         cls.post = Post.objects.create(
             author=cls.user,
             text="тестовый текст поста",
             group=cls.group,
             image=uploaded
-
         )
         cls.follow = Follow.objects.create(
             user=cls.user,
@@ -72,9 +69,7 @@ class ViewContentTest(TestCase):
 
     def test_group_post_content(self):
         """Проверка контента group.html"""
-        response = self.guest_client.get(
-            reverse("group_post", args=["test-lev"]))
-
+        response = self.guest_client.get(reverse("group_post", args=["test-lev"]))
         content = self.post
         expected_content = response.context.get("page")[0]
         self.assertEqual(content, expected_content,
@@ -136,6 +131,42 @@ class ViewContentTest(TestCase):
             reverse("group_post", args=[self.group.slug]))
         self.assertContains(response, new_post)
 
+    def test_comment_authorized_user(self):
+        """Только авторизированный пользователь может комментировать пост."""
+        comments_count = Comment.objects.count()
+        form_data = {'text': 'Текст тестового комментария'}
+        self.authorized_user.post(
+            reverse(
+                'add_comment',
+                kwargs={
+                    'username': self.post.author.username,
+                    'post_id': self.post.id,
+                }
+            ),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1,
+                         f"Комментариев меньше{comments_count + 1}")
+
+    def test_comment_guest_client(self):
+        """Неавторизированный пользователь пробует комментировать пост."""
+        comments_count = Comment.objects.count()
+        form_data = {'text': 'Текст тестового комментария'}
+        self.guest_client.post(
+            reverse(
+                'add_comment',
+                kwargs={
+                    'username': self.post.author.username,
+                    'post_id': self.post.id,
+                }
+            ),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count,
+                         "Количество комментариев больше 0")
+
 
 class PaginatorViewsTest(TestCase):
 
@@ -173,126 +204,46 @@ class PaginatorViewsTest(TestCase):
 
 
 class FollowUserViewTest(TestCase):
-    FOLLOWER_USER = 'TestUser_01'
-    NOT_FOLLOWER_USER = 'TestUser_02'
-
     def setUp(self):
-        self.user_follower = get_user_model().objects.create(
-            username=self.FOLLOWER_USER)
-        self.user_not_follower = get_user_model().objects.create(
-            username=self.NOT_FOLLOWER_USER)
-        Post.objects.create(text='Тест',
-                            author=self.user_not_follower)
-        Post.objects.create(text='Тест',
-                            author=self.user_follower)
-        self.auth_client_follower = Client()
-        self.auth_client_follower.force_login(self.user_follower)
-        self.auth_client_author = Client()
-        self.auth_client_author.force_login(self.user_not_follower)
+        self.author = get_user_model().objects.create(
+            username='TestUserAuthor')
+        self.follower = get_user_model().objects.create(
+            username='TestUserFollower')
+        self.user = get_user_model().objects.create(
+            username='TestUserNOTFollower')
+        self.post = Post.objects.create(text="Тест",
+                                        author=self.author)
+        self.follow = Follow.objects.create(user=self.follower,
+                                            author=self.author)
 
-    def test_authorized_user_follow_to_other_user(self):
+    def test_authorised_user_can_subscribe(self):
         """Тестирование подписывания на пользователей"""
-        self.auth_client_follower.post(reverse(
-            'profile_follow',
-            kwargs={
-                'username': self.user_not_follower
-            }))
-        self.assertTrue(Follow.objects.filter(user=self.user_follower,
-                                              author=self.user_not_follower),
-                        'Подписка на пользователя не рабоатет')
+        self.client.force_login(self.user)
+        follow_page = reverse("profile_follow",
+                              kwargs={"username": self.author.username})
+        self.client.post(follow_page, follow=True)
+        has_follower = Follow.objects.filter(author=self.author,
+                                             user=self.user).exists()
+        self.assertTrue(has_follower)
 
-    def test_authorized_user_unfollow(self):
+    def test_authorised_user_can_unsubscribe(self):
         """Тестирование отписывания от пользователей"""
-        self.auth_client_follower.get(reverse(
-            'profile_unfollow',
-            kwargs={
-                'username': self.user_not_follower
-            }))
-        self.assertFalse(Follow.objects.filter(user=self.user_follower,
-                                               author=self.user_not_follower),
-                         'Отписка от пользователя не работает')
+        self.client.force_login(self.follower)
+        unfollow_page = reverse("profile_unfollow",
+                                kwargs={"username": self.author.username})
+        self.client.post(unfollow_page, follow=True)
+        no_follower = Follow.objects.filter(author=self.author,
+                                            user=self.follower).exists()
+        self.assertFalse(no_follower)
 
+    def test_author_post_is_on_follower_page(self):
+        """Тест страницы follow.html для подписчика"""
+        self.client.force_login(self.follower)
+        response = self.client.get(reverse("follow_index"))
+        self.assertContains(response, self.post.text)
 
-class CommentsViewsTest(TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        """Тестовые данные"""
-        cls.user = get_user_model().objects.create_user(username="Leon")
-
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-        small_gif = (b'\x47\x49\x46\x38\x39\x61\x02\x00'
-                     b'\x01\x00\x80\x00\x00\x00\x00\x00'
-                     b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-                     b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-                     b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-                     b'\x0A\x00\x3B')
-        uploaded = SimpleUploadedFile(
-            name='small.gif',
-            content=small_gif,
-            content_type='image/gif'
-        )
-
-        cls.group = Group.objects.create(
-            title="Заголовок группы",
-            slug="test-lev",
-            description="Тестовый текст группы"
-        )
-
-        cls.post = Post.objects.create(
-            author=cls.user,
-            text="тестовый текст поста",
-            group=cls.group,
-            image=uploaded
-
-        )
-
-    def setUp(self) -> None:
-        """Тестовые пользователи"""
-
-        self.guest_client = Client()
-        self.authorized_user = Client()
-        self.authorized_user.force_login(self.user)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
-        super().tearDownClass()
-
-    def test_comment_authorized_user(self):
-        """Только авторизированный пользователь может комментировать пост."""
-        comments_count = Comment.objects.count()
-        form_data = {'text': 'Текст тестового комментария'}
-        self.authorized_user.post(
-            reverse(
-                'add_comment',
-                kwargs={
-                    'username': self.post.author.username,
-                    'post_id': self.post.id,
-                }
-            ),
-            data=form_data,
-            follow=True,
-        )
-        self.assertEqual(Comment.objects.count(), comments_count + 1,
-                         f"Комментариев меньше{comments_count + 1}")
-
-    def test_comment_guest_client(self):
-        """Неавторизированный пользователь пробует комментировать пост."""
-        comments_count = Comment.objects.count()
-        form_data = {'text': 'Текст тестового комментария'}
-        self.guest_client.post(
-            reverse(
-                'add_comment',
-                kwargs={
-                    'username': self.post.author.username,
-                    'post_id': self.post.id,
-                }
-            ),
-            data=form_data,
-            follow=True,
-        )
-
-        self.assertEqual(Comment.objects.count(), comments_count,
-                         "Количество комментариев больше 0")
+    def test_author_post_is_not_on_user_page(self):
+        """Тест страницы follow.html для обычного пользователя"""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("follow_index"))
+        self.assertNotContains(response, self.post.text)
