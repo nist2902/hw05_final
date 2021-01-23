@@ -199,8 +199,7 @@ class FollowUserViewTest(TestCase):
             }))
         self.assertTrue(Follow.objects.filter(user=self.user_follower,
                                               author=self.user_not_follower),
-                        'Подписка на пользователя не рабоатет'
-                        )
+                        'Подписка на пользователя не рабоатет')
 
     def test_authorized_user_unfollow(self):
         """Тестирование отписывания от пользователей"""
@@ -211,8 +210,7 @@ class FollowUserViewTest(TestCase):
             }))
         self.assertFalse(Follow.objects.filter(user=self.user_follower,
                                                author=self.user_not_follower),
-                         'Отписка от пользователя не работает'
-                         )
+                         'Отписка от пользователя не работает')
 
 
 class CommentsViewsTest(TestCase):
