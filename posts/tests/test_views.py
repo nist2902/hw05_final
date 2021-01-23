@@ -69,7 +69,8 @@ class ViewContentTest(TestCase):
 
     def test_group_post_content(self):
         """Проверка контента group.html"""
-        response = self.guest_client.get(reverse("group_post", args=["test-lev"]))
+        response = self.guest_client.get(
+            reverse("group_post", args=["test-lev"]))
         content = self.post
         expected_content = response.context.get("page")[0]
         self.assertEqual(content, expected_content,

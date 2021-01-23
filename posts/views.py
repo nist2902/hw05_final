@@ -12,10 +12,8 @@ def index(request):
     paginator = Paginator(post_list, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-    context = {
-        "page": page,
-        "paginator": paginator
-    }
+    context = {"page": page,
+               "paginator": paginator, }
     return render(request, "index.html", context)
 
 
@@ -26,11 +24,9 @@ def group_posts(request, slug):
     paginator = Paginator(posts, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-    context = {
-        "group": group,
-        "page": page,
-        "paginator": paginator
-    }
+    context = {"group": group,
+               "page": page,
+               "paginator": paginator, }
     return render(request, "group.html", context)
 
 
@@ -55,12 +51,10 @@ def profile(request, username):
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
-    context = {
-        "author": user,
-        "page": page,
-        "paginator": paginator,
-        "following": following,
-    }
+    context = {"author": user,
+               "page": page,
+               "paginator": paginator,
+               "following": following, }
     return render(request, "profile.html", context)
 
 
@@ -70,12 +64,10 @@ def post_view(request, username, post_id):
     author_posts = post.author
     comments = post.comments.all()
     form = CommentForm()
-    context = {
-        "author": author_posts,
-        "post": post,
-        "form": form,
-        "comments": comments
-    }
+    context = {"author": author_posts,
+               "post": post,
+               "form": form,
+               "comments": comments, }
     return render(request, "post.html", context)
 
 
@@ -87,11 +79,9 @@ def post_edit(request, username, post_id):
         return redirect('post', username=username, post_id=post_id)
     if request.method != "POST":
         form = PostForm(instance=post)
-        context = {
-            "form": form,
-            "is_edit": True,
-            "post": post
-        }
+        context = {"form": form,
+                   "is_edit": True,
+                   "post": post, }
         return render(request, 'add_or_change_post.html', context)
     form = PostForm(request.POST or None,
                     files=request.FILES or None,
