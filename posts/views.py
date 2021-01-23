@@ -22,11 +22,12 @@ def index(request):
 def group_posts(request, slug):
     """Страница записей сообщества group_post"""
     group = get_object_or_404(Group, slug=slug)
-    posts = Post.objects.filter(group=group)
+    posts = Post.objects.all() 
     paginator = Paginator(posts, 5)
     page_number = request.GET.get("page")
     page = paginator.get_page(page_number)
     context = {
+        "group": group, 
         "page": page,
         "paginator": paginator
     }
@@ -59,7 +60,6 @@ def profile(request, username):
         "page": page,
         "paginator": paginator,
         "following": following,
-
     }
     return render(request, "profile.html", context)
 
