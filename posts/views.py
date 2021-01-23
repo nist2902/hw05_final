@@ -39,14 +39,16 @@ def new_post(request):
         post.author = request.user
         post.save()
         return redirect("index")
-    return render(request, "add_or_change_post.html", {'form': form})
+    return render(request, "posts/add_or_change_post.html", {'form': form})
 
 
 def profile(request, username):
     """Профайл пользователя User and Post"""
     user = get_object_or_404(User, username=username)
-    following = request.user.is_authenticated \
+    following = (
+        request.user.is_authenticated
         and Follow.objects.filter(user=request.user, author=user).exists()
+    )
     posts = user.posts.all()
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
@@ -55,7 +57,7 @@ def profile(request, username):
                "page": page,
                "paginator": paginator,
                "following": following, }
-    return render(request, "profile.html", context)
+    return render(request, "posts/profile.html", context)
 
 
 def post_view(request, username, post_id):
@@ -68,7 +70,7 @@ def post_view(request, username, post_id):
                "post": post,
                "form": form,
                "comments": comments, }
-    return render(request, "post.html", context)
+    return render(request, "posts/post.html", context)
 
 
 @login_required
@@ -77,12 +79,6 @@ def post_edit(request, username, post_id):
     post = get_object_or_404(Post, id=post_id, author__username=username)
     if request.user != post.author:
         return redirect('post', username=username, post_id=post_id)
-    if request.method != "POST":
-        form = PostForm(instance=post)
-        context = {"form": form,
-                   "is_edit": True,
-                   "post": post, }
-        return render(request, 'add_or_change_post.html', context)
     form = PostForm(request.POST or None,
                     files=request.FILES or None,
                     instance=post)
@@ -91,12 +87,16 @@ def post_edit(request, username, post_id):
         return redirect("post",
                         username=request.user.username,
                         post_id=post_id)
+    context = {"form": form,
+               "is_edit": True,
+               "post": post, }
+    return render(request, 'posts/add_or_change_post.html', context)
 
 
 @login_required()
 def add_comment(request, username, post_id):
-    """Добавление комментарив"""
-    post = get_object_or_404(Post, id=post_id)
+    """Добавление комментариев"""
+    post = get_object_or_404(Post, id=post_id, author__username=username)
     form = CommentForm(request.POST or None)
     if request.GET or not form.is_valid():
         return redirect("post", post_id=post_id)
@@ -104,8 +104,7 @@ def add_comment(request, username, post_id):
     comment.author = request.user
     comment.post = post
     form.save()
-    return redirect(reverse('post', kwargs={'username': username,
-                                            'post_id': post_id}))
+    return redirect('post', username=username, post_id=post_id)
 
 
 @login_required
@@ -119,7 +118,7 @@ def follow_index(request):
         "page": page,
         "paginator": paginator,
     }
-    return render(request, "follow.html", context)
+    return render(request, "posts/follow.html", context)
 
 
 @login_required

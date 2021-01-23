@@ -39,7 +39,7 @@ class Post(models.Model):
         blank=True,
         null=True,
         help_text="Ваше изображение"
-        )
+    )
 
     class Meta:
         ordering = ["-pub_date"]

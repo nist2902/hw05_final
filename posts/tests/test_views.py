@@ -207,11 +207,14 @@ class PaginatorViewsTest(TestCase):
 class FollowUserViewTest(TestCase):
     def setUp(self):
         self.author = get_user_model().objects.create(
-            username='TestUserAuthor')
+            username='TestUserAuthor'
+        )
         self.follower = get_user_model().objects.create(
-            username='TestUserFollower')
+            username='TestUserFollower'
+        )
         self.user = get_user_model().objects.create(
-            username='TestUserNOTFollower')
+            username='TestUserNOTFollower'
+        )
         self.post = Post.objects.create(text="Тест",
                                         author=self.author)
         self.follow = Follow.objects.create(user=self.follower,

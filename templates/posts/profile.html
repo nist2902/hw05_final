@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "includes/base.html" %}
 {% load thumbnail %}
 {% block title %}Страница поста{% endblock %}
 {% block header %}Профайл пользователя @{{ author.username }}{% endblock %}
@@ -8,20 +8,22 @@
         <div class="col-md-3 mb-3 mt-1">
             <div class="card">
                 {% include "includes/profile_item.html" %}
-                {% if author.username != request.user.username %}
-                    <li class="list-group-item">
-                    {% if following %}
-                    <a class="btn btn-lg btn-light"
-                            href="{% url 'profile_unfollow' author.username %}" role="button">
-                            Отписаться
-                    </a>
-                    {% else %}
-                    <a class="btn btn-lg btn-primary"
-                            href="{% url 'profile_follow' author.username %}" role="button">
-                            Подписаться
-                    </a>
+                {% if user.is_authenticated %}
+                    {% if author != request.user %}
+                        <li class="list-group-item">
+                        {% if following %}
+                        <a class="btn btn-lg btn-light"
+                                href="{% url 'profile_unfollow' author.username %}" role="button">
+                                Отписаться
+                        </a>
+                        {% else %}
+                        <a class="btn btn-lg btn-primary"
+                                href="{% url 'profile_follow' author.username %}" role="button">
+                                Подписаться
+                        </a>
+                        {% endif %}
+                        </li>
                     {% endif %}
-                    </li>
                 {% endif %}
             </div>
         </div>

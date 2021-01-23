@@ -16,10 +16,10 @@ class StaticURLTests(TestCase):
         cls.list_pages = {
             reverse("index"): "index.html",
             reverse("group_post", args=["test-lev"]): "group.html",
-            reverse("new_post"): "add_or_change_post.html",
-            reverse("profile", args=[cls.user]): "profile.html",
-            reverse("post", args=[cls.user, 1]): "post.html",
-            reverse("post_edit", args=[cls.user, 1]): "add_or_change_post.html",
+            reverse("new_post"): "posts/add_or_change_post.html",
+            reverse("profile", args=[cls.user]): "posts/profile.html",
+            reverse("post", args=[cls.user, 1]): "posts/post.html",
+            reverse("post_edit", args=[cls.user, 1]): "posts/add_or_change_post.html",
             reverse("about:author"): "about/author.html",
             reverse("about:tech"): "about/tech.html"
         }
