@@ -19,19 +19,19 @@ def index(request):
     return render(request, "index.html", context)
 
 
-def group_posts(request, slug): 
-    """Страница записей сообщества group_post""" 
-    group = get_object_or_404(Group, slug=slug) 
-    posts = Post.objects.select_related("group") 
-    paginator = Paginator(posts, 5) 
-    page_number = request.GET.get("page") 
-    page = paginator.get_page(page_number) 
-    context = { 
-        "group": group, 
-        "page": page, 
-        "paginator": paginator 
-    } 
-    return render(request, "group.html", context) 
+def group_posts(request, slug):
+    """Страница записей сообщества group_post"""
+    group = get_object_or_404(Group, slug=slug)
+    posts = Post.objects.select_related("group")
+    paginator = Paginator(posts, 5)
+    page_number = request.GET.get("page")
+    page = paginator.get_page(page_number)
+    context = {
+        "group": group,
+        "page": page,
+        "paginator": paginator
+    }
+    return render(request, "group.html", context)
 
 
 @login_required
