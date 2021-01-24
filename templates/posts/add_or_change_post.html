@@ -11,7 +11,7 @@
     {% if is_edit %}
         <form method="post" action="{% url 'post_edit' post.author.username post.id %}" enctype="multipart/form-data">
     {% else %}
-        <form method="post" action="{% url 'new_post' %}" enctype="multipart/form-data"></form>
+        <form method="post" action="{% url 'new_post' %}" enctype="multipart/form-data">
     {% endif %}
     {% csrf_token %}
     {% for field in form %}
@@ -26,6 +26,6 @@
         </div>
     {% endfor %}
 
-    <input class="btn btn-primary" type="submit" value="{% if is_edit %}Сохранить{% else %} Добавить {% endif %}">
+    <input class="btn btn-primary" type="submit" value="{% if is_edit %}Сохранить{% else %}Добавить{% endif %}">
     </form>
 {% endblock %}
